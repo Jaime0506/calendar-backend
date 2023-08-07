@@ -1,50 +1,97 @@
 const { response, request } = require('express')
-const { validationResult } = require('express-validator')
+const bycrypt = require('bcryptjs')
 
-const loginUser = (req = request, res = response) => {
+const UserModel = require('../models/User')
+const { generateJWT } = require('../helpers/JWT')
+
+// host + /api/auth/login
+const loginUser = async (req = request, res = response) => {
+    const { email, password } = req.body
+    
+    try {
+        const user = await UserModel.findOne({ email })
+
+        if (!user) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Email o contraseña incorrecta'
+            })
+        }
+        
+        // Verificar las contraseñas
+        const isValidPassword = bycrypt.compareSync(password, user.password)
+
+        if (!isValidPassword) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Email o contraseña incorrecta'
+            })
+        }
+
+        // Generamos JWT
+        const token = await generateJWT(user.id, user.name)
+
+        return res.status(201).json({
+            ok: true,
+            uid: user.id,
+            name: user.name,
+            token
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            ok: false,
+            msg: error.message
+        })
+    }
+}
+
+// host + /api/auht/new
+const createUser = async (req = request, res = response) => {
+
     const { email, password } = req.body
 
-    const errors = validationResult(req)
+    try {
+        let user = await UserModel.findOne({ email })
+        
+        if (user) {
+            return res.status(400).json({
+                ok: true,
+                msg: 'El correo ya se encuentra registrado'
+            })
+        }
+        
+        user = new UserModel(req.body)
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
+        // encriptar contraseña
+        const salt = bycrypt.genSaltSync()
+        user.password = bycrypt.hashSync(password, salt)
+
+        await user.save()
+
+        // Generar JWT
+        const token = await generateJWT(user.id, user.name)
+
+        return res.status(201).json({
+            ok: true,
+            uid: user.id,
+            name: user.name,
+            token
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
             ok: false,
-            errors: errors.mapped()
+            msg: error.message
         })
     }
-
-    res.status(201).json({
-        ok: true,
-        msg: 'login',
-        ...req.body
-    })
 }
 
-const createUser = (req = request, res = response) => {
-    const { name, email, password } = req.body
-    // Los errores que dispara el middleware se almacenan en validationResult
-    // Pasandole los datos de la peticion (req)
-    const errors = validationResult(req)
-    
-    // express-validator ofrece funciones para verificar, si existe 
-    // errores, mapearlos para mostrarlos
-    if(!errors.isEmpty()) {
-        return res.status(400).json({
-            ok: false,
-            errors: errors.mapped()
-        })
-    }
-
-    res.status(201).json({
-        ok: true,
-        msg: 'register',
-        ...req.body
-    })
-}
-
+// host + /api/auth/renew
 const renewToken = (req = request, res = response) => {
     
-
     res.json({
         ok: true,
         msg: 'renew'
