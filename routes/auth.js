@@ -4,6 +4,7 @@ const { check } = require("express-validator");
 
 const { loginUser, createUser, renewToken } = require("../controllers/auth");
 const { validateFields } = require("../middlewares/validateFields");
+const { validateJWT } = require('../middlewares/validateJWT')
 
 const router = express.Router();
 // Puedo agregar middlewares, o un arreglo de middlewares
@@ -31,6 +32,6 @@ router.post(
     createUser
 );
 
-router.get("/renew", renewToken);
+router.get("/renew", [validateJWT], renewToken);
 
 module.exports = router;

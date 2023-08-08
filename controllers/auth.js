@@ -90,11 +90,17 @@ const createUser = async (req = request, res = response) => {
 }
 
 // host + /api/auth/renew
-const renewToken = (req = request, res = response) => {
+const renewToken = async (req = request, res = response) => {
+    const { name, uid } = req
     
+    // Generar nuevo JWT
+    const token = await generateJWT(uid, name)
+
     res.json({
         ok: true,
-        msg: 'renew'
+        name,
+        uid,
+        token
     })
 }
 
