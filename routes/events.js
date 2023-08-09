@@ -26,8 +26,8 @@ router.post(
     "/new",
     [
         check("title", "El titulo es requerido").notEmpty().escape(),
-        check('start', "La fecha de inicio es requerida").escape().notEmpty().custom(isDate),
-        check('end', "La fecha de finalizacion es requerida").escape().notEmpty().custom(isDate),
+        check('start', "La fecha de inicio es requerida").custom(isDate),
+        check('end', "La fecha de finalizacion es requerida").custom(isDate),
         validateFields,
     ],
     newEvent
