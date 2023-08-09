@@ -20,8 +20,6 @@ const newEvent = (req = request, res = response) => {
     res.json({
         ok: true,
         msg: 'Nuevo evento',
-        uid,
-        name
     })
 }
 
