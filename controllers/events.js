@@ -21,12 +21,16 @@ const getEvents = async(req = request, res = response) => {
 
 // host + /api/events/new
 const newEvent = async (req = request, res = response) => {
-    const { uid } = req
+    const { uid, name } = req
 
     let event = new Event({...req.body})
     
     try {
-        event.user = uid
+        event.user = {
+            uid,
+            name
+        } // console.log(event)
+
         const eventSaved = await event.save()
 
         return res.status(201).json({
