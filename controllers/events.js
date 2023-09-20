@@ -49,13 +49,11 @@ const newEvent = async (req = request, res = response) => {
 
 const uptadeEvent = async (req = request, res = response) => {
 
-    const { uid } = req
+    const { uid, name } = req
     const eventID = req.params.id
     
     try {
         let event = await Event.findById(eventID)
-
-        console.log(event)
         
         if (!event) {
             return res.status(404).json({
@@ -64,7 +62,7 @@ const uptadeEvent = async (req = request, res = response) => {
             })
         }
 
-        if (event.user.toString() !== uid) {
+        if (event.user.uid.toString() !== uid) {
             return res.status(401).json({
                 ok: false,
                 msg: 'No tiene permisos para editar este evento'
@@ -73,7 +71,10 @@ const uptadeEvent = async (req = request, res = response) => {
 
         const newEvent = {
             ...req.body,
-            user: uid
+            user: {
+                uid,
+                name
+            }
         }
 
         const updateEvent = await Event.findByIdAndUpdate(eventID, newEvent, { new: true })
@@ -108,7 +109,7 @@ const deleteEvent = async (req = request, res = response) => {
             })
         }
 
-        if (event.user.toString() !== uid) {
+        if (event.user.uid.toString() !== uid) {
             return res.status(401).json({
                 ok: false,
                 msg: 'No tienes los permisos necesarios'
